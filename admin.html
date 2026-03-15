@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>ChatFish Admin</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#eef6ff;
+padding:20px;
+}
+
+h1{
+text-align:center;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+margin-top:10px;
+}
+
+.add{
+background:#22c55e;
+color:white;
+width:100%;
+}
+
+.delete{
+background:#ef4444;
+color:white;
+}
+
+.edit{
+background:#f59e0b;
+color:white;
+}
+
+.product{
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid #eee;
+padding:10px 0;
+}
+
+.product img{
+width:50px;
+height:50px;
+object-fit:cover;
+border-radius:6px;
+margin-right:10px;
+}
+
+.left{
+display:flex;
+align-items:center;
+}
+
+.preview{
+margin-top:10px;
+}
+
+.preview img{
+width:120px;
+border-radius:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🐟 ChatFish Admin</h1>
+
+<div class="card">
+
+<h3>Add Product</h3>
+
+<input type="text" id="fish" placeholder="Fish Name">
+
+<input type="text" id="price" placeholder="Price (example 20/kg)">
+
+<input type="text" id="imageLink" placeholder="Image URL" oninput="previewImage()">
+
+<div class="preview" id="preview"></div>
+
+<input type="text" id="stock" placeholder="Stock">
+
+<button class="add" onclick="addProduct()">
+Add Product
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>Products</h3>
+
+<div id="productList"></div>
+
+</div>
+
+<script>
+
+let API="https://api.sheety.co/3dc786747b2bc829b0ad694ac2ac5ce8/fishShop/sheet1"
+
+/* IMAGE PREVIEW */
+
+function previewImage(){
+
+let url=document.getElementById("imageLink").value
+
+let preview=document.getElementById("preview")
+
+if(url){
+
+preview.innerHTML=`<img src="${url}">`
+
+}else{
+
+preview.innerHTML=""
+
+}
+
+}
+
+/* LOAD PRODUCTS */
+
+function loadProducts(){
+
+fetch(API)
+.then(res=>res.json())
+.then(data=>{
+
+let products=data.sheet1
+
+let container=document.getElementById("productList")
+
+container.innerHTML=""
+
+products.forEach(p=>{
+
+if(!p.fish) return
+
+container.innerHTML+=`
+
+<div class="product">
+
+<div class="left">
+
+<img src="${p.imageLink || ''}">
+
+<div>
+
+<b>${p.fish}</b><br>
+${p.price}
+
+</div>
+
+</div>
+
+<div>
+
+<button class="edit" onclick="editProduct(${p.id})">
+Edit
+</button>
+
+<button class="delete" onclick="deleteProduct(${p.id})">
+Delete
+</button>
+
+</div>
+
+</div>
+
+`
+
+})
+
+})
+
+}
+
+loadProducts()
+
+/* ADD PRODUCT */
+
+function addProduct(){
+
+let fish=document.getElementById("fish").value
+let price=document.getElementById("price").value
+let image=document.getElementById("imageLink").value
+let stock=document.getElementById("stock").value
+
+if(!fish || !price){
+alert("Enter fish and price")
+return
+}
+
+fetch(API,{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+sheet1:{
+fish:fish,
+price:price,
+imageLink:image,
+stock:stock
+}
+
+})
+
+})
+
+.then(res=>res.json())
+.then(()=>{
+
+alert("Product Added 🐟")
+
+document.getElementById("fish").value=""
+document.getElementById("price").value=""
+document.getElementById("imageLink").value=""
+document.getElementById("stock").value=""
+document.getElementById("preview").innerHTML=""
+
+loadProducts()
+
+})
+
+}
+
+/* DELETE PRODUCT */
+
+function deleteProduct(id){
+
+if(!confirm("Delete this product?")) return
+
+fetch(API+"/"+id,{
+
+method:"DELETE"
+
+})
+.then(()=>{
+
+alert("Product Deleted")
+
+loadProducts()
+
+})
+
+}
+
+/* EDIT PRODUCT */
+
+function editProduct(id){
+
+let newFish=prompt("New Fish Name")
+let newPrice=prompt("New Price")
+
+fetch(API+"/"+id,{
+
+method:"PUT",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+sheet1:{
+fish:newFish,
+price:newPrice
+}
+
+})
+
+})
+
+.then(()=>{
+
+alert("Product Updated")
+
+loadProducts()
+
+})
+
+}
+
+</script>
+
+</body>
+
+</html>
