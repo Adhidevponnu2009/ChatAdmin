@@ -125,13 +125,16 @@ function previewImage(){
 
 let file=document.getElementById("image").files[0]
 
-if(!file) return
+if(!file){
+document.getElementById("preview").innerHTML=""
+return
+}
 
 let reader=new FileReader()
 
 reader.onload=function(e){
 
-document.getElementById("preview").innerHTML=
+document.getElementById("preview").innerHTML =
 `<img src="${e.target.result}">`
 
 }
@@ -205,11 +208,36 @@ alert("Enter fish and price")
 return
 }
 
+/* IF IMAGE SELECTED */
+
+if(file){
+
 let reader=new FileReader()
 
 reader.onload=function(){
 
 let imageBase64=reader.result
+sendProduct(fish,price,stock,imageBase64)
+
+}
+
+reader.readAsDataURL(file)
+
+}
+
+/* IF NO IMAGE */
+
+else{
+
+sendProduct(fish,price,stock,"")
+
+}
+
+}
+
+/* SEND PRODUCT */
+
+function sendProduct(fish,price,stock,image){
 
 fetch(API,{
 
@@ -224,7 +252,7 @@ body:JSON.stringify({
 sheet1:{
 fish:fish,
 price:price,
-imageLink:imageBase64,
+imageLink:image,
 stock:stock
 }
 
@@ -248,11 +276,7 @@ loadProducts()
 
 }
 
-reader.readAsDataURL(file)
-
-}
-
-/* DELETE */
+/* DELETE PRODUCT */
 
 function deleteProduct(id){
 
@@ -268,7 +292,7 @@ loadProducts()
 
 }
 
-/* EDIT */
+/* EDIT PRODUCT */
 
 function editProduct(id){
 
