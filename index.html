@@ -3,6 +3,7 @@
 <head>
 
 <title>ChatFish Admin</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -13,7 +14,9 @@ background:#eef6ff;
 padding:20px;
 }
 
-h1{text-align:center;}
+h1{
+text-align:center;
+}
 
 .card{
 background:white;
@@ -76,9 +79,12 @@ display:flex;
 align-items:center;
 }
 
+.preview{
+margin-top:10px;
+}
+
 .preview img{
 width:120px;
-margin-top:10px;
 border-radius:10px;
 }
 
@@ -96,21 +102,24 @@ border-radius:10px;
 
 <input type="text" id="fish" placeholder="Fish Name">
 
-<input type="number" id="price" placeholder="Price">
+<input type="text" id="price" placeholder="Price (example 20/kg)">
 
-<input type="file" id="image" accept="image/*" onchange="previewImage()">
+<input type="text" id="imageLink" placeholder="Image URL" oninput="previewImage()">
 
 <div class="preview" id="preview"></div>
 
 <input type="text" id="stock" placeholder="Stock">
 
-<button class="add" onclick="addProduct()">Add Product</button>
+<button class="add" onclick="addProduct()">
+Add Product
+</button>
 
 </div>
 
 <div class="card">
 
 <h3>Products</h3>
+
 <div id="productList"></div>
 
 </div>
@@ -123,23 +132,19 @@ let API="https://api.sheety.co/3dc786747b2bc829b0ad694ac2ac5ce8/fishShop/sheet1"
 
 function previewImage(){
 
-let file=document.getElementById("image").files[0]
+let url=document.getElementById("imageLink").value
 
-if(!file){
-document.getElementById("preview").innerHTML=""
-return
-}
+let preview=document.getElementById("preview")
 
-let reader=new FileReader()
+if(url){
 
-reader.onload=function(e){
+preview.innerHTML=`<img src="${url}">`
 
-document.getElementById("preview").innerHTML =
-`<img src="${e.target.result}">`
+}else{
+
+preview.innerHTML=""
 
 }
-
-reader.readAsDataURL(file)
 
 }
 
@@ -152,6 +157,7 @@ fetch(API)
 .then(data=>{
 
 let products=data.sheet1
+
 let container=document.getElementById("productList")
 
 container.innerHTML=""
@@ -169,16 +175,23 @@ container.innerHTML+=`
 <img src="${p.imageLink || ''}">
 
 <div>
+
 <b>${p.fish}</b><br>
-QAR ${p.price}
+${p.price}
+
 </div>
 
 </div>
 
 <div>
 
-<button class="edit" onclick="editProduct(${p.id})">Edit</button>
-<button class="delete" onclick="deleteProduct(${p.id})">Delete</button>
+<button class="edit" onclick="editProduct(${p.id})">
+Edit
+</button>
+
+<button class="delete" onclick="deleteProduct(${p.id})">
+Delete
+</button>
 
 </div>
 
@@ -200,44 +213,13 @@ function addProduct(){
 
 let fish=document.getElementById("fish").value
 let price=document.getElementById("price").value
+let image=document.getElementById("imageLink").value
 let stock=document.getElementById("stock").value
-let file=document.getElementById("image").files[0]
 
 if(!fish || !price){
 alert("Enter fish and price")
 return
 }
-
-/* IF IMAGE SELECTED */
-
-if(file){
-
-let reader=new FileReader()
-
-reader.onload=function(){
-
-let imageBase64=reader.result
-sendProduct(fish,price,stock,imageBase64)
-
-}
-
-reader.readAsDataURL(file)
-
-}
-
-/* IF NO IMAGE */
-
-else{
-
-sendProduct(fish,price,stock,"")
-
-}
-
-}
-
-/* SEND PRODUCT */
-
-function sendProduct(fish,price,stock,image){
 
 fetch(API,{
 
@@ -259,6 +241,7 @@ stock:stock
 })
 
 })
+
 .then(res=>res.json())
 .then(()=>{
 
@@ -266,8 +249,8 @@ alert("Product Added 🐟")
 
 document.getElementById("fish").value=""
 document.getElementById("price").value=""
+document.getElementById("imageLink").value=""
 document.getElementById("stock").value=""
-document.getElementById("image").value=""
 document.getElementById("preview").innerHTML=""
 
 loadProducts()
@@ -280,14 +263,19 @@ loadProducts()
 
 function deleteProduct(id){
 
-if(!confirm("Delete product?")) return
+if(!confirm("Delete this product?")) return
 
 fetch(API+"/"+id,{
+
 method:"DELETE"
+
 })
 .then(()=>{
-alert("Deleted")
+
+alert("Product Deleted")
+
 loadProducts()
+
 })
 
 }
@@ -317,9 +305,13 @@ price:newPrice
 })
 
 })
+
 .then(()=>{
-alert("Updated")
+
+alert("Product Updated")
+
 loadProducts()
+
 })
 
 }
@@ -327,4 +319,5 @@ loadProducts()
 </script>
 
 </body>
+
 </html>
